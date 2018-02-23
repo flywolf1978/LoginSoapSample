@@ -6,17 +6,18 @@ export default class LoginForm extends React.Component {
       super(props);
       this.state = {
         name:'',
-        password:''
+        password:'',
+        error:false,
+        message:''
       }
     }
   login() {
     console.log('try login '+this.state.name+': '+this.state.password);
-
     var soapWebserviceURL='http://isapi.mekashron.com/icu-tech/ICUTech.dll';
         const soapRequest = new SoapRequest({
           security: {
-            username: this.state.name,
-            password: this.state.password
+            username: 'user',
+            password: 'pass',
           },
           targetNamespace: 'http://soap.acme.com/2.0/soap-access-services',
           commonTypes: 'http://soap.acme.com/2.0/soap-common-types',
@@ -43,14 +44,35 @@ export default class LoginForm extends React.Component {
         });
 
         const response =  soapRequest.sendRequest();
-  }
+        this.setState({
+                error: true
+              })
 
+  }
+  renderError() {
+    if (this.state.error) {
+      return (
+          <Text style={{fontSize: 20,fontWeight: 'bold', textAlign: 'center', color: 'red'}}>Error</Text>
+      );
+    }
+    return null;
+  }
+  renderSuccess() {
+    if (!this.state.error) {
+      return (
+          <Text style={{fontSize: 20,fontWeight: 'bold', textAlign: 'center', color: 'green'}}>{this.state.message}</Text>
+      );
+    }
+    return null;
+  }
 
   render() {
     return (
       <View style={styles.container}>
          <StatusBar
           barStyle='light-content'/>
+          {this.renderError()}
+          {this.renderSuccess()}
          <TextInput
           placeholder='user name'
           value={this.state.name}
