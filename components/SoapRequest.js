@@ -57,6 +57,7 @@ class SoapRequest {
     const xmlSerializer = new XMLSerializer();
     const xmlOutput = xmlSerializer.serializeToString(this.xmlDoc);
     this.xmlRequest = xmlHeader + xmlOutput;
+    console.log('request: '+this.xmlRequest);
     return this.xmlRequest;
   }
 
@@ -141,7 +142,7 @@ class SoapRequest {
           });
 
       this.xmlResponse = await response.text();
-      console.log('xmlResponse', this.xmlResponse);
+      //console.log('xmlResponse', this.xmlResponse);
 
       // Beware this relies on sync callback behaviour which apparently could change in future versions of react-native-xml2js
       parseString(this.xmlResponse, (err, result) => {

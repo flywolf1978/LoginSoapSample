@@ -1,6 +1,8 @@
 import React from 'react';
 import SoapRequest from './SoapRequest';//'react-native-soap-request';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar} from 'react-native';
+import {DOMParser} from 'xmldom';
+import {config} from '../config';
 export default class LoginForm extends React.Component {
   constructor(props) {
       super(props);
@@ -11,48 +13,42 @@ export default class LoginForm extends React.Component {
         message:''
       }
     }
-  login() {
+async  login() {
     console.log('try login '+this.state.name+': '+this.state.password);
-    var soapWebserviceURL='http://isapi.mekashron.com/icu-tech/ICUTech.dll';
+    var soapWebserviceURL=config.apiUrl;
         const soapRequest = new SoapRequest({
           security: {
-            username: 'user',
-            password: 'pass',
+            username: config.apiUser,
+            password: config.apiPassword,
           },
           targetNamespace: 'http://soap.acme.com/2.0/soap-access-services',
           commonTypes: 'http://soap.acme.com/2.0/soap-common-types',
           requestURL: soapWebserviceURL
         });
-
         const xmlRequest = soapRequest.createRequest({
           'soap:Login': {
             attributes: {
               'xmlns:soap': 'http://soap.acme.com/2.0/soap-access-services',
               'xmlns:cmn': 'http://soap.acme.com/2.0/soap-common-types'
             },
-            'soap:UserName': {
-              'cmn:internalId': {
-                'cmn:UserName': this.state.name
-              }
-            },
-            'soap:Password': {
-              'cmn:internalId': {
-                'cmn:Password': this.state.password
-              }
-            }
+            'UserName': this.state.name,
+            'Password': this.state.password
           }
         });
 
-        const response =  soapRequest.sendRequest();
+        const response = await soapRequest.sendRequest();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(soapRequest.xmlResponse);
+        let res=JSON.parse(xmlDoc.getElementsByTagName("return")[0].childNodes[0].nodeValue);
         this.setState({
-                error: true
+                error: res['ResultCode']==-1?true:false,
+                message: res['ResultCode']==-1?res['ResultMessage']:xmlDoc.getElementsByTagName("return")[0].childNodes[0].nodeValue
               })
-
   }
   renderError() {
     if (this.state.error) {
       return (
-          <Text style={{fontSize: 20,fontWeight: 'bold', textAlign: 'center', color: 'red'}}>Error</Text>
+          <Text style={{fontSize: 20,fontWeight: 'bold', textAlign: 'center', color: 'red'}}>Error {this.state.message}</Text>
       );
     }
     return null;
